@@ -1,6 +1,5 @@
 "use client"
 import { useEffect, useState } from "react";
-// import Image from "next/image";
 import GalleryPage from "./component/gallerylink";
 import { GoMoveToTop } from "react-icons/go";
 
@@ -33,10 +32,8 @@ export default function Home() {
   };
 
   return (
-       <div className="pt-4 min-h-screen bg-gray-100">
-            <h2 className="text-gray-500 text-xl font-bold text-center py-2">Kaylie Fung's Portfolio</h2>
+       <div className="pt-4 min-h-screen bg-gray-100"><h2 className="text-gray-500 text-xl font-bold text-center py-2">Kaylie Fung's Portfolio</h2>
       <GalleryPage />
-      
       {/* Back to Top Button */}
       {showButton && (
         <button
