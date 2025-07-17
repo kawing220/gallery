@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 
 interface GalleryCategory {
   id: string;
@@ -13,21 +14,21 @@ export default function Gallery() {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
 
-  // Define your gallery categories
   const categories: GalleryCategory[] = [
-    { id: 'menu', title: 'Menu Design', imageCount: 35, prefix: '/menu/image' },
+    { id: 'menu', title: 'Menu Design', imageCount: 33, prefix: '/menu/image' },
     { id: 'post', title: 'Social Media Post Design', imageCount: 8, prefix: '/post/image' },
     { id: 'design idea', title: 'Master-mind of the project', imageCount: 13, prefix: '/designidea/image' },
     { id: 'adcopy', title: 'Ad Copy', imageCount: 20, prefix: '/adcopy/image' },
     { id: 'print', title: 'Print Material', imageCount: 5, prefix: '/print/image' },
-    // { id: 'event', title: 'Event Organization Record', imageCount: 10, prefix: '/event/image' }
   ];
 
-  // Generate image paths for a category
   const getImagesForCategory = (category: GalleryCategory) => {
     const images = [];
     for (let i = 1; i <= category.imageCount; i++) {
-      images.push(`${category.prefix}${i}.png`);
+      images.push({
+        src: `${category.prefix}${i}.png`,
+        alt: `${category.title} ${i}`
+      });
     }
     return images;
   };
@@ -38,9 +39,6 @@ export default function Gallery() {
 
   return (
     <div className="p-4 max-w-7xl mx-auto">
-      {/* <h1 className="text-2xl font-bold mb-6">Profolio</h1> */}
-      
-      {/* Accordion */}
       <div className="space-y-2">
         {categories.map((category) => (
           <div key={category.id} className="border rounded-sm overflow-hidden">
@@ -55,22 +53,27 @@ export default function Gallery() {
               </span>
             </button>
             
-            {/* Gallery Grid (hidden unless expanded) */}
             {expandedCategory === category.id && (
               <div className="p-4">
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                  {getImagesForCategory(category).map((src, index) => (
+                  {getImagesForCategory(category).map((image, index) => (
                     <div
                       key={index}
                       className="cursor-pointer group relative overflow-hidden rounded-sm shadow-lg hover:shadow-xl transition-all duration-300"
-                      onClick={() => setSelectedImage(src)}
+                      onClick={() => setSelectedImage(image.src)}
                     >
-                      <img
-                        src={src}
-                        alt={`${category.title} ${index + 1}`}
-                        className="w-full object-cover transition-transform duration-300 group-hover:scale-105"
-                        loading="lazy"
-                      />
+                      {/* Remove fixed height container and use responsive width */}
+                      <div className="relative w-full" style={{ height: 'auto' }}>
+                        <Image
+                          src={image.src}
+                          alt={image.alt}
+                          width={400}  // Set a base width
+                          height={0}   // Let height be calculated automatically
+                          className="w-full h-auto object-contain transition-transform duration-300 group-hover:scale-105"
+                          loading="lazy"
+                          sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw"
+                        />
+                      </div>
                       <div className="absolute inset-0 bg-opacity-0 group-hover:bg-opacity-10 transition-all duration-300" />
                     </div>
                   ))}
@@ -81,18 +84,21 @@ export default function Gallery() {
         ))}
       </div>
 
-      {/* Lightbox */}
       {selectedImage && (
         <div
           className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-50 p-4"
           onClick={() => setSelectedImage(null)}
         >
           <div className="relative max-w-4xl w-full">
-            <img
-              src={selectedImage}
-              alt="Enlarged view"
-              className="max-w-full max-h-[90vh] object-contain mx-auto rounded-lg"
-            />
+            <div className="relative w-full" style={{ height: '80vh' }}>
+              <Image
+                src={selectedImage}
+                alt="Enlarged view"
+                fill
+                className="object-contain rounded-lg"
+                quality={100}
+              />
+            </div>
             <button
               className="absolute top-4 right-4 text-white text-4xl hover:text-gray-300 transition-colors"
               onClick={(e) => {
