@@ -13,6 +13,7 @@ interface GalleryCategory {
 export default function Gallery() {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
+  const [isLightboxLoading, setIsLightboxLoading] = useState(false);
 
   const categories: GalleryCategory[] = [
     { id: 'menu', title: 'Menu Design', imageCount: 33, prefix: '/menu/image' },
@@ -35,6 +36,11 @@ export default function Gallery() {
 
   const toggleCategory = (categoryId: string) => {
     setExpandedCategory(expandedCategory === categoryId ? null : categoryId);
+  };
+
+  const openLightbox = (src: string) => {
+    setIsLightboxLoading(true);
+    setSelectedImage(src);
   };
 
   return (
@@ -60,15 +66,14 @@ export default function Gallery() {
                     <div
                       key={index}
                       className="cursor-pointer group relative overflow-hidden rounded-sm shadow-lg hover:shadow-xl transition-all duration-300"
-                      onClick={() => setSelectedImage(image.src)}
+                      onClick={() => openLightbox(image.src)}
                     >
-                      {/* Remove fixed height container and use responsive width */}
                       <div className="relative w-full" style={{ height: 'auto' }}>
                         <Image
                           src={image.src}
                           alt={image.alt}
-                          width={400}  // Set a base width
-                          height={0}   // Let height be calculated automatically
+                          width={400}
+                          height={0}
                           className="w-full h-auto object-contain transition-transform duration-300 group-hover:scale-105"
                           loading="lazy"
                           sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw"
@@ -89,16 +94,30 @@ export default function Gallery() {
           className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-50 p-4"
           onClick={() => setSelectedImage(null)}
         >
-          <div className="relative max-w-4xl w-full">
-            <div className="relative w-full" style={{ height: '80vh' }}>
-              <Image
-                src={selectedImage}
-                alt="Enlarged view"
-                fill
-                className="object-contain rounded-lg"
-                quality={100}
-              />
-            </div>
+          <div className="relative max-w-4xl w-full" style={{ height: '80vh' }}>
+            {/* Loading spinner */}
+        {isLightboxLoading && (
+  <div className="absolute inset-0 flex items-center justify-center">
+    <div className="h-12 w-12 relative">
+      <div className="absolute h-full w-full rounded-full border-4 border-t-transparent border-r-transparent border-b-transparent border-l-pink-300 animate-spin"></div>
+      <div className="absolute h-full w-full rounded-full border-4 border-t-transparent border-r-transparent border-b-transparent border-l-pink-300 animate-spin" style={{ animationDelay: '0.2s' }}></div>
+      <div className="absolute h-full w-full rounded-full border-4 border-t-transparent border-r-transparent border-b-transparent border-l-pink-300 animate-spin" style={{ animationDelay: '0.4s' }}></div>
+    </div>
+  </div>
+)}
+
+            <Image
+              src={selectedImage}
+              alt="Enlarged view"
+              fill
+              className={`object-contain rounded-lg transition-opacity duration-300 ${
+                isLightboxLoading ? 'opacity-0' : 'opacity-100'
+              }`}
+              quality={100}
+              priority
+              onLoadingComplete={() => setIsLightboxLoading(false)}
+            />
+            
             <button
               className="absolute top-4 right-4 text-white text-4xl hover:text-gray-300 transition-colors"
               onClick={(e) => {
