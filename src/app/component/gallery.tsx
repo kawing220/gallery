@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 
 interface GalleryCategory {
@@ -16,15 +16,68 @@ export default function Gallery() {
   const [currentCategory, setCurrentCategory] = useState<GalleryCategory | null>(null);
   const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
   const [isLightboxLoading, setIsLightboxLoading] = useState(false);
+  
+  // For touch/swipe controls
+  const [touchStart, setTouchStart] = useState(0);
+  const [touchEnd, setTouchEnd] = useState(0);
+  const lightboxRef = useRef<HTMLDivElement>(null);
 
   const categories: GalleryCategory[] = [
-    { id: 'menu', title: 'Menu Design', imageCount: 33, prefix: '/menu/image' },
+    { id: 'menu', title: 'Menu Design', imageCount: 34, prefix: '/menu/image' },
     { id: 'post', title: 'Social Media Post Design', imageCount: 8, prefix: '/post/image' },
     { id: 'design idea', title: 'Master-mind of the project', imageCount: 13, prefix: '/designidea/image' },
     { id: 'adcopy', title: 'Ad Copy', imageCount: 20, prefix: '/adcopy/image' },
     { id: 'print', title: 'Print Materials', imageCount: 5, prefix: '/print/image' },
     { id: 'event', title: 'Events Organization (in 2019 - 2021)', imageCount: 30, prefix: '/event/image' },
   ];
+
+  // Keyboard navigation
+  useEffect(() => {
+    if (!selectedImage) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setSelectedImage(null);
+      } else if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        navigateImage('prev');
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        navigateImage('next');
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [selectedImage, selectedImageIndex, currentCategory]);
+
+  // Touch event handlers for swipe navigation
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    
+    const threshold = 50; // Minimum swipe distance to trigger navigation
+    const difference = touchStart - touchEnd;
+    
+    if (difference > threshold) {
+      // Swipe left - go to next image
+      navigateImage('next');
+    } else if (difference < -threshold) {
+      // Swipe right - go to previous image
+      navigateImage('prev');
+    }
+    
+    // Reset values
+    setTouchStart(0);
+    setTouchEnd(0);
+  };
 
   const getImagesForCategory = (category: GalleryCategory) => {
     const images = [];
@@ -46,6 +99,15 @@ export default function Gallery() {
     setSelectedImage(src);
     setSelectedImageIndex(index);
     setCurrentCategory(category);
+    
+    // Prevent background scrolling when lightbox is open
+    document.body.style.overflow = 'hidden';
+  };
+
+  const closeLightbox = () => {
+    setSelectedImage(null);
+    // Restore background scrolling
+    document.body.style.overflow = 'auto';
   };
 
   const navigateImage = (direction: 'prev' | 'next') => {
@@ -114,7 +176,11 @@ export default function Gallery() {
       {selectedImage && (
         <div
           className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-50 p-4"
-          onClick={() => setSelectedImage(null)}
+          onClick={closeLightbox}
+          ref={lightboxRef}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
         >
           <div className="relative max-w-4xl w-full" style={{ height: '80vh' }}>
             {/* Loading spinner */}
@@ -130,7 +196,7 @@ export default function Gallery() {
 
             {/* Navigation buttons */}
             <button
-              className="absolute left-4 top-1/2 -translate-y-1/2 text-white text-4xl hover:text-gray-300 transition-colors z-10"
+              className="absolute left-4 top-1/2 -translate-y-1/2 text-white text-4xl hover:text-gray-300 transition-colors z-10 bg-black/50 rounded-full w-12 h-12 flex items-center justify-center"
               onClick={(e) => {
                 e.stopPropagation();
                 navigateImage('prev');
@@ -141,7 +207,7 @@ export default function Gallery() {
             </button>
             
             <button
-              className="absolute right-4 top-1/2 -translate-y-1/2 text-white text-4xl hover:text-gray-300 transition-colors z-10"
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-white text-4xl hover:text-gray-300 transition-colors z-10 bg-black/50 rounded-full w-12 h-12 flex items-center justify-center"
               onClick={(e) => {
                 e.stopPropagation();
                 navigateImage('next');
@@ -164,15 +230,20 @@ export default function Gallery() {
             />
             
             <button
-              className="absolute top-4 right-4 text-white text-4xl hover:text-gray-300 transition-colors z-10"
+              className="absolute top-4 right-4 text-white text-4xl hover:text-gray-300 transition-colors z-10 bg-black/50 rounded-full w-12 h-12 flex items-center justify-center"
               onClick={(e) => {
                 e.stopPropagation();
-                setSelectedImage(null);
+                closeLightbox();
               }}
               aria-label="Close image viewer"
             >
               &times;
             </button>
+            
+            {/* Mobile-friendly indicator */}
+            {/* <div className="absolute bottom- left-0 right-0 text-center text-white text-sm opacity-70">
+              Swipe left/right to navigate
+            </div> */}
           </div>
         </div>
       )}
