@@ -22,7 +22,8 @@ export default function Gallery() {
     { id: 'post', title: 'Social Media Post Design', imageCount: 8, prefix: '/post/image' },
     { id: 'design idea', title: 'Master-mind of the project', imageCount: 13, prefix: '/designidea/image' },
     { id: 'adcopy', title: 'Ad Copy', imageCount: 20, prefix: '/adcopy/image' },
-    { id: 'print', title: 'Print Material', imageCount: 5, prefix: '/print/image' },
+    { id: 'print', title: 'Print Materials', imageCount: 5, prefix: '/print/image' },
+    { id: 'event', title: 'Events Organization (in 2019 - 2021)', imageCount: 30, prefix: '/event/image' },
   ];
 
   const getImagesForCategory = (category: GalleryCategory) => {
