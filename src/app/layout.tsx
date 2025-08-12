@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Roboto_Slab } from "next/font/google";
+import { Manrope } from "next/font/google";
 // import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
@@ -8,7 +8,7 @@ import "./globals.css";
 //   subsets: ["latin"],
 // });
 
-const robotoSlab = Roboto_Slab({
+const manrope = Manrope({
   subsets: ["latin"],
   weight: ["400", "700"],
 });
@@ -31,7 +31,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${robotoSlab.className} antialiased`}
+        className={`${manrope.className} antialiased`}
       >
         {children}
       </body>

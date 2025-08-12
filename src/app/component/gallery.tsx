@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
+import { GoMoveToTop } from "react-icons/go";
 
 interface GalleryCategory {
   id: string;
@@ -14,8 +15,34 @@ export default function Gallery() {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [selectedImageIndex, setSelectedImageIndex] = useState<number>(0);
   const [currentCategory, setCurrentCategory] = useState<GalleryCategory | null>(null);
-  const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
   const [isLightboxLoading, setIsLightboxLoading] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [showButton, setShowButton] = useState(false);
+
+    //Show the "Back to Top" button when the user scrolls down
+    useEffect(() => {
+      const handleScroll = () => {
+        if (window.scrollY > 200) {
+          setShowButton(true);
+        } else {
+          setShowButton(false);
+        }
+      };
+  
+      window.addEventListener("scroll", handleScroll);
+  
+      return () => {
+        window.removeEventListener("scroll", handleScroll);
+      };
+    }, []);
+  
+    //Scroll to the top of the page
+    const scrollToTop = () => {
+      window.scrollTo({
+        top: 0,
+        behavior: "smooth",
+      });
+    };
   
   // For touch/swipe controls
   const [touchStart, setTouchStart] = useState(0);
@@ -28,8 +55,11 @@ export default function Gallery() {
     { id: 'design idea', title: 'Master-mind of the project', imageCount: 13, prefix: '/designidea/image' },
     { id: 'adcopy', title: 'Ad Copy', imageCount: 20, prefix: '/adcopy/image' },
     { id: 'print', title: 'Print Materials', imageCount: 5, prefix: '/print/image' },
-    { id: 'event', title: 'Events Organization (in 2019 - 2021)', imageCount: 30, prefix: '/event/image' },
+    { id: 'event', title: 'Event Photos', imageCount: 30, prefix: '/event/image' },
   ];
+
+  const [activeCategory, setActiveCategory] = useState<string>(categories[0].id);
+
 
   // Keyboard navigation
   useEffect(() => {
@@ -63,18 +93,15 @@ export default function Gallery() {
   const handleTouchEnd = () => {
     if (!touchStart || !touchEnd) return;
     
-    const threshold = 50; // Minimum swipe distance to trigger navigation
+    const threshold = 50;
     const difference = touchStart - touchEnd;
     
     if (difference > threshold) {
-      // Swipe left - go to next image
       navigateImage('next');
     } else if (difference < -threshold) {
-      // Swipe right - go to previous image
       navigateImage('prev');
     }
     
-    // Reset values
     setTouchStart(0);
     setTouchEnd(0);
   };
@@ -90,23 +117,16 @@ export default function Gallery() {
     return images;
   };
 
-  const toggleCategory = (categoryId: string) => {
-    setExpandedCategory(expandedCategory === categoryId ? null : categoryId);
-  };
-
   const openLightbox = (src: string, category: GalleryCategory, index: number) => {
     setIsLightboxLoading(true);
     setSelectedImage(src);
     setSelectedImageIndex(index);
     setCurrentCategory(category);
-    
-    // Prevent background scrolling when lightbox is open
     document.body.style.overflow = 'hidden';
   };
 
   const closeLightbox = () => {
     setSelectedImage(null);
-    // Restore background scrolling
     document.body.style.overflow = 'auto';
   };
 
@@ -118,7 +138,6 @@ export default function Gallery() {
       ? selectedImageIndex + 1 
       : selectedImageIndex - 1;
 
-    // Wrap around if at beginning/end
     if (newIndex < 0) newIndex = images.length - 1;
     if (newIndex >= images.length) newIndex = 0;
 
@@ -128,31 +147,89 @@ export default function Gallery() {
   };
 
   return (
-    <div className="p-4 max-w-7xl mx-auto">
-      <div className="space-y-2">
-        {categories.map((category) => (
-          <div key={category.id} className="border rounded-sm overflow-hidden">
-            <button
-              className="flex justify-between items-center w-full p-4 bg-gray-100 hover:bg-gray-200 transition-colors"
-              onClick={() => toggleCategory(category.id)}
-              aria-expanded={expandedCategory === category.id}
+    <div className="flex h-screen">
+      {/* Mobile Hamburger Button */}
+      <button 
+        className="md:hidden fixed top-4 left-4 z-40 p-2 rounded-md"
+        onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+        aria-label="Toggle menu"
+      >
+        <svg className="w-6 h-6" fill="none" stroke="gray" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </button>
+       {/* Vertical Menu Bar */}
+        <div className={`w-60 bg-gray-100 border-r border-gray-200 overflow-y-auto fixed md:static h-full z-30 transition-transform duration-300 ease-in-out ${
+        mobileMenuOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
+      }`}>
+        <div className="p-4">
+          <h2 className="text-xl font-bold text-gray-800 mb-6">Categories</h2>
+          <nav className="space-y-1">
+            {categories.map((category) => (
+              <button
+                key={category.id}
+                className={`w-full text-left px-4 py-3 rounded-md transition-colors ${
+                  activeCategory === category.id
+                    ? 'bg-blue-100 text-blue-700 font-medium'
+                    : 'text-gray-700 hover:bg-gray-200'
+                }`}
+                onClick={() => {
+                  setActiveCategory(category.id);
+                  setMobileMenuOpen(false);
+                }}
+              >
+                {category.title}
+                <span className="ml-2 text-xs text-gray-500">
+                  ({category.imageCount})
+                </span>
+              </button>
+            ))}
+          </nav>
+        </div>
+      </div>
+      
+
+      {/* Main Content Area */}
+      <div className="flex-1 overflow-y-auto p-6">
+       {showButton && (
+              <button
+                onClick={scrollToTop}
+                style={{
+                  position: "fixed",
+                  bottom: "500px",
+                  right: "30px",
+                  backgroundColor: "#ffff",
+                  color: "gray",
+                  border: "none",
+                  borderRadius: "50%",
+                  width: "400px",
+                  height: "400px",
+                  display: "flex",
+                  justifyContent: "right",
+                  alignItems: "right",
+                  boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
+                  cursor: "pointer",
+                }}
+              >
+                <GoMoveToTop />
+              </button>
+            )}
+        <h1 className="text-2xl font-bold text-gray-800 mb-6">
+          {categories.find(c => c.id === activeCategory)?.title || 'Gallery'}
+        </h1>
+        
+<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 pb-16">          
+  {getImagesForCategory(categories.find(c => c.id === activeCategory)!).map((image, index) => (
+            <div
+              key={index}
+              className="cursor-pointer group relative overflow-hidden rounded-lg shadow-md hover:shadow-lg transition-all duration-300"
+              onClick={() => openLightbox(
+                image.src, 
+                categories.find(c => c.id === activeCategory)!, 
+                index
+              )}
             >
-              <span className="font-medium text-gray-500">{category.title}</span>
-              <span className="text-xl text-gray-500">
-                {expandedCategory === category.id ? '−' : '+'}
-              </span>
-            </button>
-            
-            {expandedCategory === category.id && (
-              <div className="p-4">
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                  {getImagesForCategory(category).map((image, index) => (
-                    <div
-                      key={index}
-                      className="cursor-pointer group relative overflow-hidden rounded-sm shadow-lg hover:shadow-xl transition-all duration-300"
-                      onClick={() => openLightbox(image.src, category, index)}
-                    >
-                      <div className="relative w-full" style={{ height: 'auto' }}>
+                <div className="relative w-full" style={{ height: 'auto' }}>
                         <Image
                           src={image.src}
                           alt={image.alt}
@@ -163,16 +240,13 @@ export default function Gallery() {
                           sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw"
                         />
                       </div>
-                      <div className="absolute inset-0 bg-opacity-0 group-hover:bg-opacity-10 transition-all duration-300" />
+              <div className="absolute inset-0 bg-opacity-0 group-hover:bg-opacity-10 transition-all duration-300" />
                     </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
 
+      {/* Lightbox Modal */}
       {selectedImage && (
         <div
           className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-50 p-4"
@@ -183,18 +257,14 @@ export default function Gallery() {
           onTouchEnd={handleTouchEnd}
         >
           <div className="relative max-w-4xl w-full" style={{ height: '80vh' }}>
-            {/* Loading spinner */}
             {isLightboxLoading && (
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className="h-12 w-12 relative">
-                  <div className="absolute h-full w-full rounded-full border-4 border-t-transparent border-r-transparent border-b-transparent border-l-pink-300 animate-spin"></div>
-                  <div className="absolute h-full w-full rounded-full border-4 border-t-transparent border-r-transparent border-b-transparent border-l-pink-300 animate-spin" style={{ animationDelay: '0.2s' }}></div>
-                  <div className="absolute h-full w-full rounded-full border-4 border-t-transparent border-r-transparent border-b-transparent border-l-pink-300 animate-spin" style={{ animationDelay: '0.4s' }}></div>
+                  <div className="absolute h-full w-full rounded-full border-4 border-t-transparent border-r-transparent border-b-transparent border-l-blue-300 animate-spin"></div>
                 </div>
               </div>
             )}
 
-            {/* Navigation buttons */}
             <button
               className="absolute left-4 top-1/2 -translate-y-1/2 text-white text-4xl hover:text-gray-300 transition-colors z-10 bg-black/50 rounded-full w-12 h-12 flex items-center justify-center"
               onClick={(e) => {
@@ -239,11 +309,6 @@ export default function Gallery() {
             >
               &times;
             </button>
-            
-            {/* Mobile-friendly indicator */}
-            {/* <div className="absolute bottom- left-0 right-0 text-center text-white text-sm opacity-70">
-              Swipe left/right to navigate
-            </div> */}
           </div>
         </div>
       )}
