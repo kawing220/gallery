@@ -6,7 +6,7 @@ import { BsHouseDoor } from "react-icons/bs";
 
 export default function Home() {
   
-
+const url = "https://gallery-an5r-cej99ezux-kawing220s-projects.vercel.app/"
  
 
   return (
@@ -14,7 +14,7 @@ export default function Home() {
   <div className="relative">
     {/* Home icon - positioned differently on mobile vs desktop */}
     <div className="fixed top-6 right-6 z-50 md:absolute md:top-0 md:right-14">
-      <BsHouseDoor className="text-gray-500 w-7 h-7 hover:text-blue-500 transition-colors cursor-pointer" /><a></a>
+      <a href={url}><BsHouseDoor className="text-gray-500 w-7 h-7 hover:text-blue-500 transition-colors cursor-pointer" /></a>
     </div>
     
     <h1 className="text-gray-500 text-xl font-bold text-center pt-2 pb-2 md:pt-0 md:pb-8 px-10">
