@@ -17,7 +17,7 @@ const url = "https://kayliefung-porfolio-jt5r.vercel.app/"
       <a href={url}><BsHouseDoor className="text-gray-500 w-7 h-7 hover:text-blue-500 transition-colors cursor-pointer" /></a>
     </div>
     
-    <h1 className="text-gray-500 text-xl font-bold text-center pt-2 pb-2 md:pt-0 md:pb-8 px-10">
+    <h1 className="text-gray-500 text-xl font-bold text-center pt-2 pb-2 md:pt-0 md:pb-8 px-16">
       Kaylie Fung&apos;s Marketing & Design Projects
     </h1>
     
