@@ -6,7 +6,7 @@ import { BsHouseDoor } from "react-icons/bs";
 
 export default function Home() {
   
-const url = "https://gallery-an5r-cej99ezux-kawing220s-projects.vercel.app/"
+const url = "https://kayliefung-porfolio-jt5r.vercel.app/"
  
 
   return (
