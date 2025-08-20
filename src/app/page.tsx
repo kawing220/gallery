@@ -1,5 +1,4 @@
 "use client"
-import { useEffect, useState } from "react";
 import GalleryPage from "./component/gallerylink";
 import { BsHouseDoor } from "react-icons/bs";
 
