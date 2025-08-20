@@ -18,39 +18,44 @@ export default function Gallery() {
   const [isLightboxLoading, setIsLightboxLoading] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showButton, setShowButton] = useState(false);
+  
+  // Ref for the main content area to control scrolling
+  const mainContentRef = useRef<HTMLDivElement>(null);
 
-    //Show the "Back to Top" button when the user scrolls down
-    useEffect(() => {
-      const handleScroll = () => {
-        if (window.scrollY > 200) {
-          setShowButton(true);
-        } else {
-          setShowButton(false);
-        }
-      };
-  
-      window.addEventListener("scroll", handleScroll);
-  
-      return () => {
-        window.removeEventListener("scroll", handleScroll);
-      };
-    }, []);
-  
-    //Scroll to the top of the page
-    const scrollToTop = () => {
-      window.scrollTo({
-        top: 0,
-        behavior: "smooth",
-      });
+  //Show the "Back to Top" button when the user scrolls down
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 200) {
+        setShowButton(true);
+      } else {
+        setShowButton(false);
+      }
     };
-  
+
+    window.addEventListener("scroll", handleScroll);
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, []);
+
+  //Scroll to the top of the page
+  const scrollToTop = () => {
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+  };
+
+ 
+
   // For touch/swipe controls
   const [touchStart, setTouchStart] = useState(0);
   const [touchEnd, setTouchEnd] = useState(0);
   const lightboxRef = useRef<HTMLDivElement>(null);
 
   const categories: GalleryCategory[] = [
-    { id: 'menu', title: 'Menu Design', imageCount: 34, prefix: '/menu/image' },
+    { id: 'menu', title: 'Menu Design', imageCount: 35, prefix: '/menu/image' },
     { id: 'post', title: 'Social Media Post Design', imageCount: 8, prefix: '/post/image' },
     { id: 'design idea', title: 'Master-mind of the project', imageCount: 13, prefix: '/designidea/image' },
     { id: 'adcopy', title: 'Ad Copy', imageCount: 20, prefix: '/adcopy/image' },
@@ -60,6 +65,12 @@ export default function Gallery() {
 
   const [activeCategory, setActiveCategory] = useState<string>(categories[0].id);
 
+   // Scroll to top when category changes
+  useEffect(() => {
+    if (mainContentRef.current) {
+      mainContentRef.current.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  }, [activeCategory]);
 
   // Keyboard navigation
   useEffect(() => {
@@ -158,8 +169,9 @@ export default function Gallery() {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
         </svg>
       </button>
-       {/* Vertical Menu Bar */}
-        <div className={`w-60 bg-gray-100 border-r border-gray-200 overflow-y-auto fixed md:static h-full z-30 transition-transform duration-300 ease-in-out ${
+      
+      {/* Vertical Menu Bar */}
+      <div className={`w-60 bg-gray-100 border-r border-gray-200 overflow-y-auto fixed md:static h-full z-30 transition-transform duration-300 ease-in-out ${
         mobileMenuOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
       }`}>
         <div className="p-4">
@@ -187,39 +199,43 @@ export default function Gallery() {
           </nav>
         </div>
       </div>
-      
 
       {/* Main Content Area */}
-      <div className="flex-1 overflow-y-auto p-6">
-       {showButton && (
-              <button
-                onClick={scrollToTop}
-                style={{
-                  position: "fixed",
-                  bottom: "500px",
-                  right: "30px",
-                  backgroundColor: "#ffff",
-                  color: "gray",
-                  border: "none",
-                  borderRadius: "50%",
-                  width: "400px",
-                  height: "400px",
-                  display: "flex",
-                  justifyContent: "right",
-                  alignItems: "right",
-                  boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
-                  cursor: "pointer",
-                }}
-              >
-                <GoMoveToTop />
-              </button>
-            )}
+      {showButton && (
+          <button
+            onClick={scrollToTop}
+            style={{
+              position: "fixed",
+              bottom: "500px",
+              right: "30px",
+              backgroundColor: "#ffff",
+              color: "gray",
+              border: "none",
+              borderRadius: "50%",
+              width: "10px",
+              height: "10px",
+              display: "flex",
+              justifyContent: "right",
+              alignItems: "right",
+              boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
+              cursor: "pointer",
+            }}
+          >
+            <GoMoveToTop />
+          </button>
+        )}
+      <div 
+        ref={mainContentRef}
+        className="flex-1 overflow-y-auto p-6"
+      >
+        
+        
         <h1 className="text-2xl font-bold text-gray-800 mb-6">
           {categories.find(c => c.id === activeCategory)?.title || 'Gallery'}
         </h1>
         
-<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 pb-16">          
-  {getImagesForCategory(categories.find(c => c.id === activeCategory)!).map((image, index) => (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 pb-16">          
+          {getImagesForCategory(categories.find(c => c.id === activeCategory)!).map((image, index) => (
             <div
               key={index}
               className="cursor-pointer group relative overflow-hidden rounded-lg shadow-md hover:shadow-lg transition-all duration-300"
@@ -229,19 +245,19 @@ export default function Gallery() {
                 index
               )}
             >
-                <div className="relative w-full" style={{ height: 'auto' }}>
-                        <Image
-                          src={image.src}
-                          alt={image.alt}
-                          width={400}
-                          height={0}
-                          className="w-full h-auto object-contain transition-transform duration-300 group-hover:scale-105"
-                          loading="lazy"
-                          sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw"
-                        />
-                      </div>
+              <div className="relative w-full" style={{ height: 'auto' }}>
+                <Image
+                  src={image.src}
+                  alt={image.alt}
+                  width={400}
+                  height={0}
+                  className="w-full h-auto object-contain transition-transform duration-300 group-hover:scale-105"
+                  loading="lazy"
+                  sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw"
+                />
+              </div>
               <div className="absolute inset-0 bg-opacity-0 group-hover:bg-opacity-10 transition-all duration-300" />
-                    </div>
+            </div>
           ))}
         </div>
       </div>
